@@ -53,12 +53,25 @@ Fetches the detailed report of a specific import.
 
 ```json
 {
-  "successfulImports": 2,
+  "successfulImports": 0,
   "accountId": "acc-889",
-  "importId": "76bc2494-0727-4ca6-83fe-83d8d85905e5",
-  "failedImports": 0,
-  "errors": [],
-  "createdAt": "2025-05-02T23:26:31.525Z",
+  "importId": "77579c26-183a-4c16-b8ea-ca800a3e2cac",
+  "failedImports": 2,
+  "errors": [
+    {
+      "employeeId": "emp-1",
+      "errors": [
+        "Employee ID must be unique"
+      ]
+    },
+    {
+      "employeeId": "emp-1222",
+      "errors": [
+        "Employee ID must be unique"
+      ]
+    }
+  ],
+  "createdAt": "2025-05-02T23:53:23.674Z",
   "totalEmployees": 2
 }
 ```
