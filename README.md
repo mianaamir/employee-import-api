@@ -35,3 +35,12 @@ Upload a JSON payload with employee data to start an import job.
     }
   ]
 }
+
+
+#### Sample `/import` Endpoint response
+```json
+{
+  "importId": "76bc2494-0727-4ca6-83fe-83d8d85905e5",
+  "message": "Employee import process has been started. Has 2 valid and 0 invalid employees"
+}
+
