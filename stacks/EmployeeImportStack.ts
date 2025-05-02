@@ -26,7 +26,7 @@ export function EmployeeImportStack({ stack }: StackContext) {
   const queue = new Queue(stack, "EmployeeQueue", {
     consumer: {
       function: {
-        handler: "packages/functions/src/processHandler.handler",
+        handler: "packages/functions/src/employeesSQSConsumer.handler",
         bind: [employeesTable, importReportsTable],
         environment: {
           EMPLOYEES_TABLE: employeesTable.tableName,
@@ -49,7 +49,7 @@ export function EmployeeImportStack({ stack }: StackContext) {
       },
     },
     routes: {
-      "POST /import": "packages/functions/src/importHandler.handler",
+      "POST /import": "packages/functions/src/importEmployeesHandler.handler",
       "GET /report/{importId}": "packages/functions/src/reportHandler.handler",
     },
   });
