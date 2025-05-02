@@ -1,5 +1,5 @@
 import { SSTConfig } from "sst";
-import { EmployeeImportStack } from "./stacks/EmployeeImportStack";
+import { EmployeeImportStack } from "./stacks/employeeImportStack";
 
 export default {
   config(_input) {
