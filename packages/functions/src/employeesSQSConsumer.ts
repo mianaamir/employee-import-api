@@ -10,16 +10,16 @@ const docClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 export const handler = async (event: SQSEvent) => {
     const employeeRepo = new EmployeeRepository(docClient, envConfig.EMPLOYEES_TABLE);
 
-    for (const record of event.Records) {
-        const { accountId, employees } = JSON.parse(record.body);
-
-        if (employees.length > 0) {
-            await employeeRepo.batchCreate(employees.map((employee: Employee) => {
-                return {
-                    ...employee,
-                    accountId
-                }
-            }));
+    await Promise.all(event.Records.map(async (record) => {
+        try {
+            const { accountId, employees } = JSON.parse(record.body);
+            if (Array.isArray(employees) && employees.length > 0) {
+                await employeeRepo.batchCreate(
+                    employees.map((employee: Employee) => ({ ...employee, accountId }))
+                );
+            }
+        } catch (err) {
+            console.error('Error processing record:', { body: record.body, err });
         }
-    }
+    }));
 }; 

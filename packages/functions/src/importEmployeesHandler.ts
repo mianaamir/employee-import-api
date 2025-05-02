@@ -64,6 +64,7 @@ export const handler = async (
     }
     catch (error) {
         console.error('Import failed:', error);
+        console.log('Error stack : ', error instanceof Error ? error.stack : '')
         return {
             statusCode: 500,
             body: JSON.stringify({

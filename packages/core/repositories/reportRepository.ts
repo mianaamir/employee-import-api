@@ -7,7 +7,7 @@ export class ReportRepository {
     private readonly tableName: string
   ) { }
 
-  async create(report: Omit<ImportReport, 'completedAt'>): Promise<void> {
+  async create(report: ImportReport): Promise<void> {
     await this.docClient.send(new PutCommand({
       TableName: this.tableName,
       Item: report

@@ -13,26 +13,32 @@ export class EmployeeValidator {
   async validateEmployees(accountId: string, employees: Partial<Employee>[]): Promise<BulkValidationResult> {
     const { existingEmployeeIds, existingPhoneNumbers } = await this.checkUniqueness(accountId, employees);
 
-    // In memory sets to detect duplicates in the input payload
-    const seenEmployeeIds = new Set<string>();
+    const seenEmployeeIds = new Set<string>(); // lowercased employeeIds
     const seenPhoneNumbers = new Set<string>();
 
     const results: EmployeeValidationResult[] = employees.map(employee => {
-      const employeeId = employee.employeeId?.trim();
-      const phoneNumber = employee.phoneNumber;
+      const rawEmployeeId = employee.employeeId?.trim() ?? '';
+      const normalizedEmployeeId = rawEmployeeId.toLowerCase();
+      const phoneNumber = employee.phoneNumber?.trim();
 
       const localErrors: string[] = [];
 
-      if (employeeId && seenEmployeeIds.has(employeeId)) {
-        localErrors.push("Duplicate Employee ID in payload");
-      } else if (employeeId) {
-        seenEmployeeIds.add(employeeId);
+
+      if (rawEmployeeId) {
+        if (seenEmployeeIds.has(normalizedEmployeeId)) {
+          localErrors.push("Duplicate Employee ID in payload");
+        } else {
+          seenEmployeeIds.add(normalizedEmployeeId);
+        }
       }
 
-      if (phoneNumber && seenPhoneNumbers.has(phoneNumber)) {
-        localErrors.push("Duplicate phone number in payload");
-      } else if (phoneNumber) {
-        seenPhoneNumbers.add(phoneNumber);
+
+      if (phoneNumber) {
+        if (seenPhoneNumbers.has(phoneNumber)) {
+          localErrors.push("Duplicate phone number in payload");
+        } else {
+          seenPhoneNumbers.add(phoneNumber);
+        }
       }
 
       const baseValidation = this.validateEmployee(
@@ -63,18 +69,24 @@ export class EmployeeValidator {
     existingPhoneNumbers: Set<string>
   ): EmployeeValidationResult {
     const errors: string[] = [];
-    const employeeId = employee.employeeId?.trim() || '';
+    const rawEmployeeId = employee.employeeId?.trim() ?? '';
+    const normalizedEmployeeId = rawEmployeeId.toLowerCase();
 
-    if (!employeeId) errors.push("Employee ID is required");
+    // Basic field validations
+    if (!rawEmployeeId) errors.push("Employee ID is required");
     if (!employee.firstName?.trim()) errors.push("First name is required");
     if (!employee.lastName?.trim()) errors.push("Last name is required");
 
+    // Check phone number format using libphonenumber-js
     if (employee.phoneNumber) {
       const phone = parsePhoneNumberFromString(employee.phoneNumber);
       if (!phone?.isValid()) errors.push("Invalid phone number");
     }
 
-    if (existingEmployeeIds.has(employeeId)) errors.push("Employee ID must be unique");
+    if (existingEmployeeIds.has(normalizedEmployeeId)) {
+      errors.push("Employee ID must be unique");
+    }
+
     if (employee.phoneNumber && existingPhoneNumbers.has(employee.phoneNumber)) {
       errors.push("Phone number must be unique");
     }
@@ -91,19 +103,21 @@ export class EmployeeValidator {
   }
 
   private async checkUniqueness(accountId: string, employees: Partial<Employee>[]) {
-    const employeeIds = employees.map(e => e.employeeId).filter(Boolean) as string[];
-    const phoneNumbers = employees.map(e => e.phoneNumber).filter(Boolean) as string[];
+    const rawEmployeeIds = employees.map(e => e.employeeId?.trim()).filter(Boolean) as string[];
+    const phoneNumbers = employees.map(e => e.phoneNumber?.trim()).filter(Boolean) as string[];
 
     const employeeRepository = new EmployeeRepository(this.docClient, this.tableName);
 
-    const [existingEmployees, existingPhoneNumbers] = await Promise.all([
-      employeeRepository.batchGetEmployeeIds(accountId, employeeIds),
+    // Query existing employee records by employeeIds and phone numbers
+    const [existingEmployees, existingPhoneMatches] = await Promise.all([
+      employeeRepository.batchGetEmployeeIds(accountId, rawEmployeeIds),
       employeeRepository.getEmployeesByPhoneNumbers(accountId, phoneNumbers)
     ]);
 
-    return {
-      existingEmployeeIds: new Set(existingEmployees.map(e => e.employeeId)),
-      existingPhoneNumbers: new Set(existingPhoneNumbers.map(e => e.phoneNumber!))
-    };
+    // Normalize for case-insensitive comparisons
+    const existingEmployeeIds = new Set(existingEmployees.map(e => e.employeeId.toLowerCase()));
+    const existingPhoneNumbers = new Set(existingPhoneMatches.map(e => e.phoneNumber!));
+
+    return { existingEmployeeIds, existingPhoneNumbers };
   }
 }

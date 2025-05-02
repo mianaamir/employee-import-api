@@ -21,10 +21,7 @@ export class ImportService {
 
         await this.queueValidEmployees(importId, accountId, validEmployees);
 
-        console.log('Valid Employees', validEmployees)
-        console.log('Invalid Employees', invalidEmployees)
-
-        return { importId, validCount: validEmployees.length, invalidCount: invalidEmployees.length};
+        return { importId, validCount: validEmployees.length, invalidCount: invalidEmployees.length };
     }
 
     private async createImportReport(
@@ -51,20 +48,19 @@ export class ImportService {
         return importId;
     }
 
-    private async queueValidEmployees(importId: string, accountId: string, employees: Employee[]) {
+    private async queueValidEmployees(importId: string, accountId: string, employees: Employee[]): Promise<void> {
         const BATCH_SIZE = 25;
-        const promises = [];
         const chunks = _.chunk(employees, BATCH_SIZE);
-        for (const chunk of chunks) {
-            promises.push(this.sqs.send(new SendMessageCommand({
-                QueueUrl: this.queueUrl,
-                MessageBody: JSON.stringify({
-                    importId,
-                    accountId,
-                    employees: chunk
-                })
-            })));
-        }
+        const promises = chunks.map(async (chunk) => {
+            try {
+                await this.sqs.send(new SendMessageCommand({
+                    QueueUrl: this.queueUrl,
+                    MessageBody: JSON.stringify({ importId, accountId, employees: chunk })
+                }));
+            } catch (err) {
+                console.error(`Failed to send SQS message for importId ${importId}`, err);
+            }
+        });
         await Promise.all(promises);
     }
 }
