@@ -7,6 +7,9 @@ import _ from 'lodash';
 import { ImportService } from './services/importService';
 import { EmployeeValidator } from './utils/employeeValidator';
 
+import { envConfig } from '../../core/config/envConfig'
+
+
 const docClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 const sqs = new SQSClient({});
 
@@ -35,8 +38,8 @@ export const handler = async (
             return { statusCode: 400, body: JSON.stringify({ error: 'Maximum 10,000 employees per request' }) };
         }
 
-        const validator = new EmployeeValidator(docClient, process.env.EMPLOYEES_TABLE!);
-        const reportRepository = new ReportRepository(docClient, process.env.REPORTS_TABLE!);
+        const validator = new EmployeeValidator(docClient, envConfig.EMPLOYEES_TABLE);
+        const reportRepository = new ReportRepository(docClient, envConfig.REPORTS_TABLE);
         const importService = new ImportService(
             validator,
             reportRepository,
