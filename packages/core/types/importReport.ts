@@ -9,21 +9,20 @@ export interface ImportReport {
     errors: EmployeeError[];
     createdAt: string;
     completedAt?: string;
-  }
-  
-  export interface EmployeeError {
+}
+
+export interface EmployeeError {
     employeeId?: string;
     errors: string[];
-  }
+}
 
-  export interface EmployeeValidationResult {
+export interface EmployeeValidationResult {
     isValid: boolean;
     employee: Employee;
     errors: string[];
-  }
-  
-  export interface BulkValidationResult {
+}
+
+export interface BulkValidationResult {
     validEmployees: Employee[];
     invalidEmployees: EmployeeValidationResult[];
-  }
-  
+}

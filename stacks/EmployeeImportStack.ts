@@ -26,7 +26,7 @@ export function EmployeeImportStack({ stack }: StackContext) {
   const queue = new Queue(stack, "EmployeeQueue", {
     consumer: {
       function: {
-        handler: "packages/functions/src/employeesSQSConsumer.handler",
+        handler: "packages/functions/src/consumers/employeesSQSConsumer.handler",
         bind: [employeesTable, importReportsTable],
         environment: {
           EMPLOYEES_TABLE: employeesTable.tableName,

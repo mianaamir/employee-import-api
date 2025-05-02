@@ -44,7 +44,7 @@ export const handler = async (
             validator,
             reportRepository,
             sqs,
-            process.env.QUEUE_URL!
+            envConfig.QUEUE_URL
         );
 
         const { importId, validCount, invalidCount } = await importService.processImport(
