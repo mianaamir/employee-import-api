@@ -21,7 +21,10 @@ export class ImportService {
 
         await this.queueValidEmployees(importId, accountId, validEmployees);
 
-        return { importId, validCount: validEmployees.length, invalidCount: invalidEmployees.length };
+        console.log('Valid Employees', validEmployees)
+        console.log('Invalid Employees', invalidEmployees)
+
+        return { importId, validCount: validEmployees.length, invalidCount: invalidEmployees.length};
     }
 
     private async createImportReport(
