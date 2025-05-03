@@ -8,6 +8,23 @@
 - Import summary reports (success/failure counts)  
 - Error tracking for invalid records  
 
+
+## API Flow
+
+1. **Import Endpoint (`/import`)**  
+   - Accepts a JSON payload containing employee data.
+   - Validates each employee record for correctness using the `EmployeeValidator`.
+   - **Batch Processing**:
+     - Valid employee records are grouped into batches of 25.
+     - Each batch is sent as a single message to an Amazon SQS queue.
+   - The SQS queue processes the data and writes it to the DynamoDB `Employees` table in batches, ensuring efficient handling of large datasets.
+   - Simultaneously, an entry is created in the `Reports` table to track the import job's progress and generate a detailed report.
+
+2. **Report Endpoint (`/report/{importId}`)**  
+   - Fetches the detailed report of a specific import job.
+   - The report includes the total number of employees, successful imports, failed imports, and error details for invalid records.
+
+
 ## Usage
 
 ### `/import` Endpoint
